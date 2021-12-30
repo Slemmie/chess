@@ -96,8 +96,9 @@ namespace ai01 {
 			double result = board.turn() == COLOR_WHITE ? -1e5 : 1e5;
 			bool ischeck = is_check(board, board.turn());
 			for (const Move& move : moves) {
-				if (board[move.from].same_piece(PIECE_KING) &&
-				abs((signed int)move.from.file() - (signed int)move.to.file()) == 1 &&
+				if ((depth & 1) && board[move.from].same_piece(PIECE_KING) &&
+				board[move.to].same_piece(PIECE_NONE) &&
+				abs((signed int)move.from.file() - (signed int)move.to.file()) != 2 &&
 				!((int)moves.size() < 10 && (ischeck || board.fullmoves() > 18))) {
 					continue;
 				}
@@ -181,9 +182,11 @@ namespace ai01 {
 			double result = board.turn() == COLOR_WHITE ? -1e5 : 1e5;
 			Move best_move = moves[0];
 			bool ischeck = is_check(board, board.turn());
+			double alpha = -1e5, beta = 1e5;
 			for (const Move& move : moves) {
 				if (board[move.from].same_piece(PIECE_KING) &&
-				abs((signed int)move.from.file() - (signed int)move.to.file()) == 1 &&
+				board[move.to].same_piece(PIECE_NONE) &&
+				abs((signed int)move.from.file() - (signed int)move.to.file()) != 2 &&
 				!((int)moves.size() < 10 && (ischeck || board.fullmoves() > 18))) {
 					continue;
 				}
@@ -191,7 +194,7 @@ namespace ai01 {
 				uint32_t hash = Board_hash::hash(nxt);
 				m_movetable.push(hash);
 				assert(m_movetable.count(hash) < 3);
-				double value = minmax(nxt);
+				double value = minmax(nxt, 1, alpha, beta);
 				if (board.turn() == COLOR_WHITE && value > result) {
 					result = value;
 					best_move = move;
@@ -200,6 +203,11 @@ namespace ai01 {
 					best_move = move;
 				}
 				m_movetable.pop(hash);
+				if (board.turn() == COLOR_WHITE) {
+					alpha = std::max(alpha, result);
+				} else {
+					beta = std::min(beta, result);
+				}
 			}
 			int64_t micro = timer.current();
 			if (micro < 1'500 * 1000) {
