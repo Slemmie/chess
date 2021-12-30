@@ -17,7 +17,7 @@ class Board {
 public:
 	
 	Board();
-	Board(const std::string& _FEN);
+	Board(const std::string& _FEN, bool log_fenstring = true);
 	Board(const Board& _board, const Move& _move);
 	
 	std::vector <Move> moves_of_color(uint8_t color) const;

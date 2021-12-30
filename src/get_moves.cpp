@@ -20,9 +20,15 @@ uint8_t game_state(const Board& board, const std::vector <Move>& avail_moves) {
 	// insufficient material check
 	bool wwb = false, wbb = false;
 	bool bwb = false, bbb = false;
+	bool brq = false;
 	uint8_t wn = 0, bn = 0;
 	for (int rank = 0; rank < 8; rank++) {
 		for (int file = 0; file < 8; file++) {
+			if (board[file][rank].same_piece(PIECE_PAWN) ||
+			board[file][rank].same_piece(PIECE_ROOK) ||
+			board[file][rank].same_piece(PIECE_QUEE)) {
+				brq = true;
+			}
 			if (board[file][rank].same_piece(PIECE_KNIG)) {
 				wn += board[file][rank].same_color(COLOR_WHITE);
 				bn += board[file][rank].same_color(COLOR_BLACK);
@@ -38,8 +44,8 @@ uint8_t game_state(const Board& board, const std::vector <Move>& avail_moves) {
 			}
 		}
 	}
-	bool w_ins = !((wwb & wbb) || (wn > 1) || ((wwb | wbb) & !!wn));
-	bool b_ins = !((bwb & bbb) || (bn > 1) || ((bwb | bbb) & !!bn));
+	bool w_ins = !((wwb & wbb) || (wn > 1) || ((wwb | wbb) & !!wn) || brq);
+	bool b_ins = !((bwb & bbb) || (bn > 1) || ((bwb | bbb) & !!bn) || brq);
 	if (w_ins & b_ins) {
 		return GAME_STATE_DRAW;
 	}
@@ -178,7 +184,7 @@ bool is_check(const Board& board, uint8_t king_color) {
 	for (uint8_t i = 0; i < 8; i++) {
 		signed int r = rank + knight_dr[i];
 		signed int f = file + knight_df[i];
-		if (r >= 0 && r < 8 && f >= 0 && f < 8 && board[r][f].same_piece(PIECE_KING) &&
+		if (r >= 0 && r < 8 && f >= 0 && f < 8 && board[r][f].same_piece(PIECE_KNIG) &&
 		!board[r][f].same_color(king_color)) {
 			return true;
 		}
@@ -467,6 +473,40 @@ std::vector <Move> get_moves_king(const Board& board, const Square_index& square
 		if (r >= 0 && r < 8 && f >= 0 && f < 8 && !board[r][f].same_color(color) &&
 		!kings_adj(r, f)) {
 			result.emplace_back(Move(square, Square_index(r, f)));
+		}
+	}
+	bool check_here = is_check(board, color);
+	if (color == COLOR_WHITE) {
+		if (board.castle_WK() &&
+		board[square.rank()][square.file() + 1].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() + 2].same_piece(PIECE_NONE) &&
+		!check_here &&
+		!is_check(Board(board, Move(square.rank(), square.file() + 1)), color)) {
+			result.emplace_back(Move(square, Square_index(square.rank(), square.file() + 2)));
+		}
+		if (board.castle_WQ() &&
+		board[square.rank()][square.file() - 1].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() - 2].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() - 3].same_piece(PIECE_NONE) &&
+		!check_here &&
+		!is_check(Board(board, Move(square.rank(), square.file() - 1)), color)) {
+			result.emplace_back(Move(square, Square_index(square.rank(), square.file() - 2)));
+		}
+	} else {
+		if (board.castle_BK() &&
+		board[square.rank()][square.file() + 1].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() + 2].same_piece(PIECE_NONE) &&
+		!check_here &&
+		!is_check(Board(board, Move(square.rank(), square.file() + 1)), color)) {
+			result.emplace_back(Move(square, Square_index(square.rank(), square.file() + 2)));
+		}
+		if (board.castle_BQ() &&
+		board[square.rank()][square.file() - 1].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() - 2].same_piece(PIECE_NONE) &&
+		board[square.rank()][square.file() - 3].same_piece(PIECE_NONE) &&
+		!check_here &&
+		!is_check(Board(board, Move(square.rank(), square.file() - 1)), color)) {
+			result.emplace_back(Move(square, Square_index(square.rank(), square.file() - 2)));
 		}
 	}
 	return validate_moves(board, result);

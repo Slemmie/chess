@@ -11,13 +11,15 @@ m_castle_BK(false), m_castle_BQ(false), m_castle_WK(false), m_castle_WQ(false),
 m_halfmoves(0), m_fullmoves(0), m_turn(COLOR_NONE)
 { }
 
-Board::Board(const std::string& _FEN) :
+Board::Board(const std::string& _FEN, bool log_fenstring) :
 m_pieces(8, std::vector <Piece> (8)),
 m_en_pessant_square(),
 m_castle_BK(false), m_castle_BQ(false), m_castle_WK(false), m_castle_WQ(false),
 m_halfmoves(0), m_fullmoves(0), m_turn(COLOR_NONE)
 {
-	std::cerr << "loading FEN string '" << _FEN << "'\n\n" << std::endl;
+	if (log_fenstring) {
+		std::cerr << "loading FEN string '" << _FEN << "'\n\n" << std::endl;
+	}
 	uint8_t i = 0;
 	for (uint8_t rank = 0, file = 0; _FEN[i] != ' '; i++) {
 		if (_FEN[i] == '/') {
@@ -95,16 +97,16 @@ m_turn(_board.turn() == COLOR_WHITE ? COLOR_BLACK : COLOR_WHITE)
 			(*this)[0][7] = Piece();
 		}
 		if (_move.to == Square_index(0, 2)) {
-			(*this)[0][0] = _board[0][0];
-			(*this)[0][3] = Piece();
+			(*this)[0][3] = _board[0][0];
+			(*this)[0][0] = Piece();
 		}
 		if (_move.to == Square_index(7, 6)) {
 			(*this)[7][5] = _board[7][7];
 			(*this)[7][7] = Piece();
 		}
 		if (_move.to == Square_index(7, 2)) {
-			(*this)[7][0] = _board[7][0];
-			(*this)[7][3] = Piece();
+			(*this)[7][3] = _board[7][0];
+			(*this)[7][0] = Piece();
 		}
 	}
 	// check for en pessant

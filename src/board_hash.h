@@ -7,7 +7,7 @@ class Board_hash {
 public:
 	
 	static uint32_t hash(const Board& board) {
-		uint32_t result;
+		uint32_t result = 0;
 		uint64_t pref_pow = 1;
 		for (uint8_t rank = 0; rank < 8; rank++) {
 			for (uint8_t file = 0; file < 8; file++) {

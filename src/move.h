@@ -13,6 +13,29 @@ struct Move {
 	promote_result(_promote_result)
 	{ }
 	
+	Move(const std::string& str) {
+		from = Square_index(str.substr(0, 2));
+		to = Square_index(str.substr(2, 2));
+		if ((int)str.size() == 5) {
+			Piece piece = Piece();
+			switch (str[5]) {
+				case 'Q': piece = Piece(PIECE_QUEE, COLOR_WHITE);
+				case 'q': piece = Piece(PIECE_QUEE, COLOR_BLACK);
+				case 'R': piece = Piece(PIECE_ROOK, COLOR_WHITE);
+				case 'r': piece = Piece(PIECE_ROOK, COLOR_BLACK);
+				case 'B': piece = Piece(PIECE_BISH, COLOR_WHITE);
+				case 'b': piece = Piece(PIECE_BISH, COLOR_BLACK);
+				case 'N': piece = Piece(PIECE_KNIG, COLOR_WHITE);
+				case 'n': piece = Piece(PIECE_KNIG, COLOR_BLACK);
+			};
+			promote_result = piece;
+		} else {
+			promote_result = Piece();
+		}
+	}
+	
+	Move() { }
+	
 	Square_index from, to;
 	Piece promote_result;
 	
