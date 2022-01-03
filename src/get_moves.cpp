@@ -454,12 +454,12 @@ std::vector <Move> get_moves_queen(const Board& board, const Square_index& squar
 std::vector <Move> get_moves_king(const Board& board, const Square_index& square) {
 	std::vector <Move> result;
 	uint8_t color = board[square].same_color(COLOR_WHITE) ? COLOR_WHITE : COLOR_BLACK;
-	static signed int king_dr[8] = { -1, -1, -1, 0, 1, 1, 1, 0 };
-	static signed int king_df[8] = { -1, 0, 1, 1, 1, 0, -1, -1 };
-	auto kings_adj = [&] (signed int rook, signed int file) -> bool {
+	static signed int king_dr[8] = { -1,-1,-1, 0, 1, 1, 1, 0 };
+	static signed int king_df[8] = { -1, 0, 1, 1, 1, 0,-1,-1 };
+	auto kings_adj = [&] (signed int rank, signed int file) -> bool {
 		for (uint8_t i = 0; i < 8; i++) {
-			signed int r = (signed int)square.rank() + king_dr[i];
-			signed int f = (signed int)square.file() + king_df[i];
+			signed int r = rank + king_dr[i];
+			signed int f = file + king_df[i];
 			if (r >= 0 && r < 8 && f >= 0 && f < 8 && board[r][f].same_piece(PIECE_KING) &&
 			!board[r][f].same_color(color)) {
 				return true;

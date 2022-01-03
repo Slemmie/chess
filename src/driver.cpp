@@ -93,11 +93,14 @@ int main(int argc, char** argv) {
 		}
 	}
 	
-	Board board(DEFAULT_START_POS);
+	Board  board(DEFAULT_START_POS);
 	
 	while (true) {
 		ai.push_hash(Board_hash::hash(board));
 		std::cout << "\n\n" << board << std::endl;
+		if (white_ai && black_ai) {
+			std::cout << " - depth = " << (int)ai.MAX_DEPTH << std::endl;
+		}
 		uint8_t gamestate = game_state(board);
 		if (gamestate == GAME_STATE_ALIVE && ai.movetable_count(Board_hash::hash(board)) >= 3) {
 			gamestate = GAME_STATE_DRAW;

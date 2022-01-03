@@ -26,7 +26,7 @@ namespace ai01 {
 		
 		uint8_t MAX_DEPTH = 3;
 		
-		double minmax_capturechains(const Board& board, double alpha = -1e5, double beta = 1e5,
+		double minmax_capturechains(const Board& board, double alpha = -1e8, double beta = 1e8,
 		uint8_t depth = 0) {
 			std::vector <Move> moves = board.moves_of_color(board.turn());
 			uint8_t gamestate = game_state(board, moves);
@@ -34,11 +34,9 @@ namespace ai01 {
 				if (gamestate == GAME_STATE_DRAW) {
 					return 0.0;
 				}
-				return gamestate == GAME_STATE_WHITE_WINS ? 1e5 : -1e5;
+				return gamestate == (gamestate == GAME_STATE_WHITE_WINS ? 1e5 : -1e5) * (1000.0 / (double)depth);
 			}
-			if (depth > 2) {
-				return Eval::eval(board);
-			}
+			moves = m_sort_moves(board, moves);
 			double result = Eval::eval(board);
 			for (const Move& move : moves) {
 				if (board[move.to].same_piece(PIECE_NONE)) {
@@ -49,7 +47,19 @@ namespace ai01 {
 				m_movetable.push(hash);
 				if (m_movetable.count(hash) >= 3) {
 					m_movetable.pop(hash);
-					return 0.0;
+					result = board.turn() == COLOR_WHITE ?
+					std::max(result, 0.0) : std::min(result, 0.0);
+					if (board.turn() == COLOR_WHITE && result >= beta) {
+						break;
+					} else if (board.turn() == COLOR_BLACK && result <= alpha) {
+						break;
+					}
+					if (board.turn() == COLOR_WHITE) {
+						alpha = std::max(alpha, result);
+					} else {
+						beta = std::min(beta, result);
+					}
+					continue;
 				}
 				result = board.turn() == COLOR_WHITE ?
 				std::max(result, minmax_capturechains(nxt, alpha, beta, depth + 1)) :
@@ -69,37 +79,27 @@ namespace ai01 {
 			return result;
 		}
 		
-		double minmax(const Board& board, uint8_t depth = 1, double alpha = -1e5, double beta = 1e5) {
-			if (depth > MAX_DEPTH) {
-				return Eval::eval(board);
-				//return minmax_capturechains(board, alpha, beta);
-			}
+		double minmax(const Board& board, uint8_t depth = 1, double alpha = -1e8, double beta = 1e8) {
 			std::vector <Move> moves = board.moves_of_color(board.turn());
 			uint8_t gamestate = game_state(board, moves);
 			if (gamestate != GAME_STATE_ALIVE) {
 				if (gamestate == GAME_STATE_DRAW) {
 					return 0.0;
 				}
-				return gamestate == GAME_STATE_WHITE_WINS ? 1e5 : -1e5;
+				return (gamestate == GAME_STATE_WHITE_WINS ? 1e5 : -1e5) * (1000.0 / (double)depth);
 			}
-			std::random_shuffle(moves.begin(), moves.end());
-			std::vector <Move> captures, noncaptures;
-			for (const Move& move : moves) {
-				if (board[move.to].same_piece(PIECE_NONE)) {
-					noncaptures.emplace_back(move);
-				} else {
-					captures.emplace_back(move);
-				}
+			if (depth > MAX_DEPTH) {
+				return Eval::eval(board);
+				//return minmax_capturechains(board, alpha, beta);
 			}
-			moves = captures;
-			moves.insert(moves.begin(), noncaptures.begin(), noncaptures.end());
-			double result = board.turn() == COLOR_WHITE ? -1e5 : 1e5;
+			moves = m_sort_moves(board, moves);
+			double result = board.turn() == COLOR_WHITE ? -1e8 : 1e8;
 			bool ischeck = is_check(board, board.turn());
 			for (const Move& move : moves) {
 				if ((depth & 1) && board[move.from].same_piece(PIECE_KING) &&
 				board[move.to].same_piece(PIECE_NONE) &&
 				abs((signed int)move.from.file() - (signed int)move.to.file()) != 2 &&
-				!((int)moves.size() < 10 && (ischeck || board.fullmoves() > 18))) {
+				board.fullmoves() < 18 && !ischeck && (int)moves.size() < 10) {
 					continue;
 				}
 				Board nxt = Board(board, move);
@@ -107,11 +107,23 @@ namespace ai01 {
 				m_movetable.push(hash);
 				if (m_movetable.count(hash) >= 3) {
 					m_movetable.pop(hash);
-					return 0.0;
+					result = board.turn() == COLOR_WHITE ?
+					std::max(result, 0.0) : std::min(result, 0.0);
+					if (board.turn() == COLOR_WHITE && result >= beta) {
+						break;
+					} else if (board.turn() == COLOR_BLACK && result <= alpha) {
+						break;
+					}
+					if (board.turn() == COLOR_WHITE) {
+						alpha = std::max(alpha, result);
+					} else {
+						beta = std::min(beta, result);
+					}
+					continue;
 				}
-				double result_now = 0;
+				double result_now = result;
 				auto dp_it = m_dp_table.find(hash);
-				if (dp_it != m_dp_table.end() && dp_it->second.lowest_depth <= depth + 2) {
+				if (dp_it != m_dp_table.end() && dp_it->second.lowest_depth <= depth + 1) {
 					result_now = dp_it->second.result;
 				} else {
 					result_now = minmax(nxt, depth + 1, alpha, beta);
@@ -137,24 +149,14 @@ namespace ai01 {
 		}
 		
 		Move find_move(const Board& board) {
-			std::cout <<  std::setprecision(2) << std::fixed;
+			std::cout << std::setprecision(2) << std::fixed;
 			m_dp_table.clear();
 			Timer timer;
 			std::vector <Move> moves = board.moves_of_color(board.turn());
 			uint8_t gamestate = game_state(board, moves);
 			assert(gamestate == GAME_STATE_ALIVE);
-			std::random_shuffle(moves.begin(), moves.end());
-			std::vector <Move> captures, noncaptures;
-			for (const Move& move : moves) {
-				if (board[move.to].same_piece(PIECE_NONE)) {
-					noncaptures.emplace_back(move);
-				} else {
-					captures.emplace_back(move);
-				}
-			}
-			moves = captures;
-			moves.insert(moves.begin(), noncaptures.begin(), noncaptures.end());
-			if (m_book_map.find(Board_hash::hash(board)) != m_book_map.end()) {
+			if (board.fullmoves() < 15 &&
+			m_book_map.find(Board_hash::hash(board)) != m_book_map.end()) {
 				if (board.turn() == COLOR_WHITE) {
 					Move move = m_book_map[Board_hash::hash(board)].move_by_score.rbegin()->second;
 					bool exists = false;
@@ -179,26 +181,33 @@ namespace ai01 {
 					}
 				}
 			}
-			double result = board.turn() == COLOR_WHITE ? -1e5 : 1e5;
+			moves = m_sort_moves(board, moves);
+			double result = board.turn() == COLOR_WHITE ? -1e8 : 1e8;
 			Move best_move = moves[0];
 			bool ischeck = is_check(board, board.turn());
-			double alpha = -1e5, beta = 1e5;
+			double alpha = -1e8, beta = 1e8;
 			for (const Move& move : moves) {
 				if (board[move.from].same_piece(PIECE_KING) &&
 				board[move.to].same_piece(PIECE_NONE) &&
 				abs((signed int)move.from.file() - (signed int)move.to.file()) != 2 &&
-				!((int)moves.size() < 10 && (ischeck || board.fullmoves() > 18))) {
+				board.fullmoves() < 18 && !ischeck && (int)moves.size() < 10) {
 					continue;
 				}
 				Board nxt = Board(board, move);
 				uint32_t hash = Board_hash::hash(nxt);
 				m_movetable.push(hash);
-				assert(m_movetable.count(hash) < 3);
-				double value = minmax(nxt, 1, alpha, beta);
+				double value = 0.0;
+				if (m_movetable.count(hash) < 3) {
+					value = minmax(nxt, 1, alpha, beta);
+					auto dp_it = m_dp_table.find(hash);
+					if (dp_it == m_dp_table.end() || dp_it->second.lowest_depth > 1) {
+						m_dp_table[hash] = Hash_move_value(1, value);
+					}
+				}
 				if (board.turn() == COLOR_WHITE && value > result) {
 					result = value;
 					best_move = move;
-				} else if (value < result) {
+				} else if (board.turn() == COLOR_BLACK && value < result) {
 					result = value;
 					best_move = move;
 				}
@@ -210,12 +219,14 @@ namespace ai01 {
 				}
 			}
 			int64_t micro = timer.current();
-			if (micro < 1'500 * 1000) {
+			static int64_t prev_micro = 1LL << 60;
+			if (micro < 1'500 * 1000 && prev_micro < 2'000 * 1000) {
 				MAX_DEPTH++;
 			}
-			if (micro > 30'000 * 1000 && MAX_DEPTH > 1) {
+			if (micro > 20'000 * 1000 && MAX_DEPTH > 1) {
 				MAX_DEPTH--;
 			}
+			prev_micro = micro;
 			std::cout << "result evalutation: " <<
 			result << "    (in " << micro / 1000 << " ms)" << std::endl;
 			return best_move;
@@ -294,7 +305,7 @@ namespace ai01 {
 		
 		struct Hash_move_value {
 			
-			Hash_move_value(uint8_t _lowest_depth = 255, double _result = 0.0) :
+			Hash_move_value(uint8_t _lowest_depth = 255, double _result = 100.0) :
 			lowest_depth(_lowest_depth),
 			result(_result)
 			{ }
@@ -313,6 +324,63 @@ namespace ai01 {
 		};
 		
 		std::map <uint32_t, Book_value> m_book_map;
+		
+		std::vector <Move> m_sort_moves(const Board& board, const std::vector <Move>& moves) {
+			std::vector <std::pair <double, size_t>> order(moves.size(), { 0, 0 });
+			for (size_t i = 0; i < moves.size(); i++) {
+				order[i].second = i;
+				if (!board[moves[i].to].same_piece(PIECE_NONE)) {
+					double from_val = Eval::piece_value(board[moves[i].from].piece());
+					double to_val = Eval::piece_value(board[moves[i].to].piece());
+					from_val = fabs(from_val);
+					to_val = fabs(to_val);
+					order[i].first += 10.0 * to_val - from_val;
+				}
+				if (board[moves[i].from].same_piece(PIECE_PAWN) &&
+				(moves[i].to.rank() == 0 || moves[i].to.rank() == 7)) {
+					order[i].first += 2.0 * fabs(Eval::piece_value(moves[i].promote_result.piece()));
+				}
+				uint8_t rank = moves[i].to.rank();
+				uint8_t file = moves[i].to.file();
+				bool attacked_by_pawn = false;
+				if (board[moves[i].from].same_color(COLOR_BLACK) && rank != 7) {
+					if (file != 0 && board[rank + 1][file - 1].same_piece(PIECE_PAWN) &&
+					board[rank + 1][file - 1].same_color(COLOR_WHITE)) {
+						attacked_by_pawn = true;
+					}
+					if (file != 7 && board[rank + 1][file + 1].same_piece(PIECE_PAWN) &&
+					board[rank + 1][file + 1].same_color(COLOR_WHITE)) {
+						attacked_by_pawn = true;
+					}
+				} else if (board[moves[i].from].same_color(COLOR_WHITE) && rank != 0) {
+					if (file != 0 && board[rank - 1][file - 1].same_piece(PIECE_PAWN) &&
+					board[rank - 1][file - 1].same_color(COLOR_BLACK)) {
+						attacked_by_pawn = true;
+					}
+					if (file != 7 && board[rank - 1][file + 1].same_piece(PIECE_PAWN) &&
+					board[rank - 1][file + 1].same_color(COLOR_BLACK)) {
+						attacked_by_pawn = true;
+					}
+				}
+				if (attacked_by_pawn) {
+					order[i].first -= fabs(Eval::piece_value(board[moves[i].from].piece()));
+				}
+				if (board[moves[i].from].same_piece(PIECE_KING) &&
+				abs((signed int)moves[i].from.file() - (signed int)moves[i].to.file()) > 1) {
+					order[i].first += 0.5;
+				}
+				order[i].first += Eval::piece_position_value(board,
+				moves[i].from.rank(), moves[i].to.file(),
+				moves[i].to.rank(), moves[i].to.file());
+			}
+			std::random_shuffle(order.begin(), order.end());
+			std::sort(order.rbegin(), order.rend());
+			std::vector <Move> result(moves.size());
+			for (size_t i = 0; i < moves.size(); i++) {
+				result[i] = moves[order[i].second];
+			}
+			return result;
+		}
 		
 	};
 	

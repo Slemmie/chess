@@ -13,6 +13,8 @@ namespace ai01 {
 			
 			double white_material_nopawns = 0;
 			double black_material_nopawns = 0;
+			double white_material_nopawnsqueens = 0;
+			double black_material_nopawnsqueens = 0;
 			for (uint8_t rank = 0; rank < 8; rank++) {
 				for (uint8_t file = 0; file < 8; file++) {
 					if (board[rank][file].same_piece(PIECE_NONE)) {
@@ -24,8 +26,14 @@ namespace ai01 {
 					board[rank][file].same_piece(PIECE_QUEE)) {
 						if (board[rank][file].same_color(COLOR_WHITE)) {
 							white_material_nopawns += m_piece_values[board[rank][file].piece()];
+							if (!board[rank][file].same_piece(PIECE_QUEE)) {
+								white_material_nopawnsqueens += m_piece_values[board[rank][file].piece()];
+							}
 						} else {
 							black_material_nopawns -= m_piece_values[board[rank][file].piece()];
+							if (!board[rank][file].same_piece(PIECE_QUEE)) {
+								black_material_nopawnsqueens -= m_piece_values[board[rank][file].piece()];
+							}
 						}
 					}
 				}
@@ -33,8 +41,51 @@ namespace ai01 {
 			double white_endgame_weight = m_endgame_weight(white_material_nopawns);
 			double black_endgame_weight = m_endgame_weight(black_material_nopawns);
 			
+			bool white_check = is_check(board, COLOR_WHITE);
+			bool black_check = is_check(board, COLOR_BLACK);
+			double white_endgame_weight_noqueens = m_endgame_weight(white_material_nopawnsqueens);
+			double black_endgame_weight_noqueens = m_endgame_weight(black_material_nopawnsqueens);
+			result -= 2.5 * (white_endgame_weight_noqueens * white_endgame_weight_noqueens) * white_check;
+			result += 2.5 * (black_endgame_weight_noqueens * black_endgame_weight_noqueens) * black_check;
+			
 			for (uint8_t rank = 0; rank < 8; rank++) {
 				for (uint8_t file = 0; file < 8; file++) {
+					if (board[rank][file].same_piece(PIECE_KING)) {
+						static signed int dr_close[8] = {-1,-1,-1, 0, 1, 1, 1, 0 };
+						static signed int df_close[8] = {-1, 0, 1, 1, 1, 0,-1,-1 };
+						static signed int dr_far[16] =
+						{-2,-2,-2,-2,-2,-1, 0, 1, 2, 2, 2, 2, 2, 1, 0,-1 };
+						static signed int df_far[16] =
+						{-2,-1, 0, 1, 2, 2, 2, 2, 2, 1, 0,-1,-2,-2,-2,-2 };
+						double count = 0;
+						for (int k = 0; k < 8; k++) {
+							signed int r = (signed int)rank + dr_close[k];
+							signed int f = (signed int)file + df_close[k];
+							if (r < 0 || f < 0 || r >= 8 || f >= 8) {
+								continue;
+							}
+							if (board[r][f].same_piece(PIECE_NONE)) {
+								count -= 0.2;
+								continue;
+							}
+							count += 0.3;
+						}
+						for (int k = 0; k < 16; k++) {
+							signed int r = (signed int)rank + dr_far[k];
+							signed int f = (signed int)file + df_far[k];
+							if (r < 0 || f < 0 || r >= 8 || f >= 8) {
+								continue;
+							}
+							if (board[r][f].same_piece(PIECE_NONE)) {
+								count -= 0.08;
+								continue;
+							}
+							count += 0.15;
+						}
+						count *= board[rank][file].same_color(COLOR_WHITE) ? 1 : -1;
+						count *= 1.5 * (board[rank][file].same_color(COLOR_WHITE) ?
+						white_endgame_weight : black_endgame_weight);
+					}
 					if (!board[rank][file].same_piece(PIECE_NONE)) {
 						if (board[rank][file].same_piece(PIECE_KING)) {
 							if (board[rank][file].same_color(COLOR_WHITE)) {
@@ -91,6 +142,50 @@ namespace ai01 {
 			result -= m_can_castle_value * board.castle_BK();
 			result -= m_can_castle_value * board.castle_BQ();
 			
+			return result;
+		}
+		
+		static inline double piece_value(const uint8_t piece) {
+			return m_piece_values[piece];
+		}
+		
+		static inline double piece_position_value(const Board& board,
+		uint8_t from_rank, uint8_t from_file,
+		uint8_t to_rank, uint8_t to_file) {
+			double result = 0;
+			if (!board[from_rank][from_file].same_piece(PIECE_KING)) {
+				if (board[from_rank][from_file].same_piece(PIECE_PAWN)) {
+					if (board[from_rank][from_file].same_color(COLOR_WHITE)) {
+						result += Piece_square_table_white::pawn[to_rank][to_file];
+					} else {
+						result += Piece_square_table_black::pawn[to_rank][to_file];
+					}
+				} else if (board[from_rank][from_file].same_piece(PIECE_ROOK)) {
+					if (board[from_rank][from_file].same_color(COLOR_WHITE)) {
+						result += Piece_square_table_white::rook[to_rank][to_file];
+					} else {
+						result += Piece_square_table_black::rook[to_rank][to_file];
+					}
+				} else if (board[from_rank][from_file].same_piece(PIECE_KNIG)) {
+					if (board[from_rank][from_file].same_color(COLOR_WHITE)) {
+						result += Piece_square_table_white::knight[to_rank][to_file];
+					} else {
+						result += Piece_square_table_black::knight[to_rank][to_file];
+					}
+				} else if (board[from_rank][from_file].same_piece(PIECE_BISH)) {
+					if (board[from_rank][from_file].same_color(COLOR_WHITE)) {
+						result += Piece_square_table_white::bishup[to_rank][to_file];
+					} else {
+						result += Piece_square_table_black::bishup[to_rank][to_file];
+					}
+				} else if (board[from_rank][from_file].same_piece(PIECE_QUEE)) {
+					if (board[from_rank][from_file].same_color(COLOR_WHITE)) {
+						result += Piece_square_table_white::queen[to_rank][to_file];
+					} else {
+						result += Piece_square_table_black::queen[to_rank][to_file];
+					}
+				}
+			}
 			return result;
 		}
 		
