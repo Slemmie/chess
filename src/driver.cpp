@@ -7,49 +7,45 @@
 #include <string>
 #include <cstring>
 
-Move read_move(const ai01::Find_move& ai) {
+Move read_move() {
 	std::cout << "move > ";
 	std::cout.flush();
 	std::string line;
 	std::getline(std::cin, line);
-	if (line == "depth") {
-		std::cout << "current depth = " << (unsigned int)ai.MAX_DEPTH << std::endl;
-		return read_move(ai);
-	}
 	uint8_t color = COLOR_NONE;
 	if (line.empty() || (line[0] != 'w' && line[0] != 'b')) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	color = line[0] == 'w' ? COLOR_WHITE : COLOR_BLACK;
 	line.erase(line.begin());
 	if ((int)line.size() <= 3) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	line.erase(line.begin());
 	if (!(line[0] >= 'a' && line[0] <= 'h')) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	if (!isdigit(line[1])) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	Square_index from(line.substr(0, 2));
 	line.erase(line.begin(), line.begin() + 2);
 	if (line.empty()) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	line.erase(line.begin());
 	if (!(line[0] >= 'a' && line[0] <= 'h')) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	if (!isdigit(line[1])) {
 		std::cout << "bad input" << std::endl;
-		return read_move(ai);
+		return read_move();
 	}
 	Square_index to(line.substr(0, 2));
 	line.erase(line.begin(), line.begin() + 2);
@@ -73,8 +69,9 @@ int main(int argc, char** argv) {
 	bool black_ai = false;
 	bool white_ai = false;
 	
-	ai01::Find_move ai;
-	ai.read_book("./src/ai-0-1/book/games_coord");
+	ai01::AI ai("./src/ai-0-1/book/games_coord");
+	
+	uint64_t millis = 5000;
 	
 	for (int i = 0; i < argc; i++) {
 		if (!strcmp(argv[i], "w")) {
@@ -89,20 +86,19 @@ int main(int argc, char** argv) {
 			num &= isdigit(c);
 		}
 		if (num) {
-			ai.MAX_DEPTH = std::stoi(s);
+			millis = std::stoll(s);
 		}
 	}
 	
-	Board  board(DEFAULT_START_POS);
+	Board board(DEFAULT_START_POS);
+	ai01::Move_table movetable;
 	
 	while (true) {
 		ai.push_hash(Board_hash::hash(board));
+		movetable.push(Board_hash::hash(board));
 		std::cout << "\n\n" << board << std::endl;
-		if (white_ai && black_ai) {
-			std::cout << " - depth = " << (int)ai.MAX_DEPTH << std::endl;
-		}
 		uint8_t gamestate = game_state(board);
-		if (gamestate == GAME_STATE_ALIVE && ai.movetable_count(Board_hash::hash(board)) >= 3) {
+		if (gamestate == GAME_STATE_ALIVE && movetable.count(Board_hash::hash(board)) >= 3) {
 			gamestate = GAME_STATE_DRAW;
 		}
 		if (gamestate != GAME_STATE_ALIVE) {
@@ -118,12 +114,12 @@ int main(int argc, char** argv) {
 			return 0;
 		}
 		if (white_ai && board.turn() == COLOR_WHITE) {
-			Move desired_move = ai.find_move(board);
+			Move desired_move = ai.find_move(board, millis, true);
 			board = Board(board, desired_move);
 			continue;
 		}
 		if (black_ai && board.turn() == COLOR_BLACK) {
-			Move desired_move = ai.find_move(board);
+			Move desired_move = ai.find_move(board, millis, true);
 			board = Board(board, desired_move);
 			continue;
 		}
@@ -131,7 +127,7 @@ int main(int argc, char** argv) {
 		bool exists = false;
 		Move desired_move = moves[0];
 		do {
-			desired_move = read_move(ai);
+			desired_move = read_move();
 			for (Move move : moves) {
 				if (desired_move == move) {
 					exists = true;

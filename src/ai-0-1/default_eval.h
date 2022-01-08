@@ -4,11 +4,11 @@
 
 namespace ai01 {
 	
-	class Eval {
+	class Default_eval {
 		
 	public:
 		
-		static double eval(const Board& board) {
+		double eval(const Board& board) const {
 			double result = 0;
 			
 			double white_material_nopawns = 0;
@@ -145,13 +145,13 @@ namespace ai01 {
 			return result;
 		}
 		
-		static inline double piece_value(const uint8_t piece) {
+		inline double piece_value(const uint8_t piece) const {
 			return m_piece_values[piece];
 		}
 		
-		static inline double piece_position_value(const Board& board,
+		inline double piece_position_value(const Board& board,
 		uint8_t from_rank, uint8_t from_file,
-		uint8_t to_rank, uint8_t to_file) {
+		uint8_t to_rank, uint8_t to_file) const {
 			double result = 0;
 			if (!board[from_rank][from_file].same_piece(PIECE_KING)) {
 				if (board[from_rank][from_file].same_piece(PIECE_PAWN)) {
@@ -192,7 +192,7 @@ namespace ai01 {
 	private:
 		
 		// the bigger the value - the later in the game we are
-		static inline double m_endgame_weight(const double material_nopawns) {
+		inline double m_endgame_weight(const double material_nopawns) const {
 			static const double end_mult = 1.0 / (2.0 *
 			m_piece_values[PIECE_ROOK | COLOR_WHITE] +
 			m_piece_values[PIECE_BISH | COLOR_WHITE] +
@@ -204,7 +204,7 @@ namespace ai01 {
 		
 		static inline double m_can_castle_value = 0.03;
 		
-		static inline double m_piece_values[] {
+		static inline double m_piece_values[] = {
 			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 			+1.0, // 01001 , w pawn
 			-1.0, // 01010 , b pawn
