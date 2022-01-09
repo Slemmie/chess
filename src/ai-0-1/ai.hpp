@@ -34,6 +34,11 @@ namespace ai01 {
 			return m_book.find(hash);
 		}
 		
+		m_dp_map.clear();
+		if (m_q_dp_map.size() > size_t(1e6)) {
+			m_q_dp_map.clear();
+		}
+		
 		m_timer = Timer();
 		m_timed_out = false;
 		m_best_move = Move();
@@ -43,7 +48,6 @@ namespace ai01 {
 		double result_eval = m_best_eval;
 		
 		for (uint32_t depth = 1; !m_timed_out; depth++) {
-			m_dp_map.clear();
 			m_minmax(board, -1e8, 1e8, depth, 0, timeout_millis);
 			if (m_timed_out) {
 				break;
@@ -106,7 +110,9 @@ namespace ai01 {
 		
 		if (depth == 0) {
 			m_move_table.pop(hash);
-			return m_eval.eval(board) * (board.turn() == COLOR_WHITE ? 1 : -1);
+			double eval = m_quiescence_minmax(board, alpha, beta, timeout_millis);
+			return eval;
+			//return m_eval.eval(board) * (board.turn() == COLOR_WHITE ? 1 : -1);
 		}
 		
 		std::vector <Move> moves = m_sort_moves(board, board.moves_of_color(board.turn()));
@@ -123,7 +129,7 @@ namespace ai01 {
 			Board next_board = Board(board, move);
 			double eval = -m_minmax(next_board, -beta, -alpha, depth - 1, from_root + 1, timeout_millis);
 			if (eval >= beta) {
-				m_dp_map.insert(eval, hash, depth);
+				m_dp_map.insert(beta, hash, depth);
 				m_move_table.pop(hash);
 				return beta;
 			}
@@ -139,6 +145,42 @@ namespace ai01 {
 		m_dp_map.insert(alpha, hash, depth);
 		
 		m_move_table.pop(hash);
+		
+		return alpha;
+	}
+	
+	template <class Eval_class>
+	double AI <Eval_class>::m_quiescence_minmax(const Board& board, double alpha, double beta, uint64_t timeout_millis) {
+		if (m_timed_out |= m_timer.current() >= timeout_millis * 1000) {
+			return 0;
+		}
+		
+		uint32_t hash = Board_hash::hash(board);
+		
+		if (m_q_dp_map.count(hash, 0)) {
+			return m_q_dp_map.find(hash, 0);
+		}
+		
+		double eval = m_eval.eval(board) * (board.turn() == COLOR_WHITE ? 1 : -1);
+		if (eval >= beta) {
+			return beta;
+		}
+		alpha = std::max(alpha, eval);
+		
+		std::vector <Move> moves = m_sort_moves(board, board.moves_of_color(board.turn()));
+		for (const Move& move : moves) {
+			if (board[move.to].same_piece(PIECE_NONE)) {
+				continue;
+			}
+			eval = -m_quiescence_minmax(Board(board, move), -beta, -alpha, timeout_millis);
+			if (eval >= beta) {
+				m_q_dp_map.insert(beta, hash, 0);
+				return beta;
+			}
+			alpha = std::max(alpha, eval);
+		}
+		
+		m_q_dp_map.insert(alpha, hash, 0);
 		
 		return alpha;
 	}

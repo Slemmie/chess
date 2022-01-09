@@ -33,6 +33,7 @@ namespace ai01 {
 		Book_moves m_book;
 		
 		Dp_map m_dp_map;
+		Dp_map m_q_dp_map;
 		
 	private:
 		
@@ -42,8 +43,7 @@ namespace ai01 {
 		double m_best_eval;
 		double m_minmax(const Board& board, double alpha, double beta,
 		uint32_t depth, uint32_t from_root, uint64_t timeout_millis);
-		
-		//double m_minmax(const Board& board, double alpha, double beta, uint32_t depth, uint64_t timeout_millis);
+		double m_quiescence_minmax(const Board& board, double alpha, double beta, uint64_t timeout_millis);
 		
 		void m_update_alpha_beta(double value, uint8_t turn, double& alpha, double& beta) const;
 		

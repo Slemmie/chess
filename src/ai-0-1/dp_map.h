@@ -35,6 +35,10 @@ namespace ai01 {
 			return it->second.value;
 		}
 		
+		inline size_t size() const {
+			return m_map.size();
+		}
+		
 	private:
 		
 		struct Dp_val {
