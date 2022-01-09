@@ -39,7 +39,7 @@ struct Move {
 	Square_index from, to;
 	Piece promote_result;
 	
-	inline bool operator == (const Move& oth) {
+	inline bool operator == (const Move& oth) const {
 		return from.rank() == oth.from.rank() &&
 		from.file() == oth.from.file() &&
 		to.rank() == oth.to.rank() &&

@@ -41,11 +41,10 @@ namespace ai01 {
 		bool m_timed_out;
 		Move m_best_move;
 		double m_best_eval;
+		std::vector <Move> m_last_evals, m_last_evals_this_it;
 		double m_minmax(const Board& board, double alpha, double beta,
 		uint32_t depth, uint32_t from_root, uint64_t timeout_millis);
 		double m_quiescence_minmax(const Board& board, double alpha, double beta, uint64_t timeout_millis);
-		
-		void m_update_alpha_beta(double value, uint8_t turn, double& alpha, double& beta) const;
 		
 		std::vector <Move> m_sort_moves(const Board& board, const std::vector <Move>& moves) const;
 		

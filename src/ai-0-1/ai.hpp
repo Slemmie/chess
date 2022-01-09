@@ -43,15 +43,20 @@ namespace ai01 {
 		m_timed_out = false;
 		m_best_move = Move();
 		m_best_eval = 0;
+		m_last_evals.clear();
+		m_last_evals_this_it.clear();
 		
 		Move result_move = m_best_move;
 		double result_eval = m_best_eval;
 		
 		for (uint32_t depth = 1; !m_timed_out; depth++) {
+			m_last_evals_this_it.clear();
 			m_minmax(board, -1e8, 1e8, depth, 0, timeout_millis);
 			if (m_timed_out) {
 				break;
 			}
+			m_last_evals = m_last_evals_this_it;
+			std::reverse(m_last_evals.begin(), m_last_evals.end());
 			result_move = m_best_move;
 			result_eval = m_best_eval * (board.turn() == COLOR_WHITE ? 1 : -1);
 			if (log_info) {
@@ -138,6 +143,7 @@ namespace ai01 {
 				if (from_root == 0) {
 					m_best_move = move;
 					m_best_eval = eval;
+					m_last_evals_this_it.emplace_back(move);
 				}
 			}
 		}
@@ -186,16 +192,17 @@ namespace ai01 {
 	}
 	
 	template <class Eval_class>
-	void AI <Eval_class>::m_update_alpha_beta(double value, uint8_t turn, double& alpha, double& beta) const {
-		turn == COLOR_WHITE ? alpha = std::max(alpha, value) : beta = std::min(beta, value);
-	}
-	
-	template <class Eval_class>
 	std::vector <Move> AI <Eval_class>::m_sort_moves(const Board& board, const std::vector <Move>& moves) const {
 		std::vector <std::pair <double, size_t>> order(moves.size(), { 0, 0 });
 		
 		for (size_t i = 0; i < moves.size(); i++) {
 			order[i].second = i;
+			
+			for (size_t j = 0; j < std::min(size_t(5), m_last_evals.size()); j++) {
+				if (moves[i] == m_last_evals[j]) {
+					order[i].first += 1000.0 / double(j + 1);
+				}
+			}
 			
 			if (!board[moves[i].to].same_piece(PIECE_NONE)) {
 				double from_val = fabs(m_eval.piece_value(board[moves[i].from].piece()));
