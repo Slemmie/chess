@@ -167,19 +167,26 @@ namespace ai01 {
 			}
 			ouf << "batch_size " << inp << "\n";
 			std::cout << "mutation rate > ";
-				std::cin >> inp;
+			std::cin >> inp;
 			while (!m_is_float(inp)) {
 				std::cout << "bad input\nmutation rate > ";
 				std::cin >> inp;
 			}
 			ouf << "mutation_rate " << inp << "\n";
 			std::cout << "millis per move > ";
-				std::cin >> inp;
+			std::cin >> inp;
 			while (!m_is_int(inp)) {
 				std::cout << "bad input\nmillis per move > ";
 				std::cin >> inp;
 			}
 			ouf << "millis_per_move " << inp << "\n";
+			std::cout << "book depth > ";
+			std::cin >> inp;
+			while (!m_is_int(inp)) {
+				std::cout << "book depth > ";
+				std::cin >> inp;
+			}
+			ouf << "book_depth " << inp << "\n";
 			ouf << "generation 0\n";
 			ouf.close();
 		}
@@ -189,6 +196,7 @@ namespace ai01 {
 			int32_t batch_size = 0; bool found_batch_size_field = false;
 			double mutation_rate = 0; bool found_mutation_rate_field = false;
 			uint64_t millis_per_move = 0; bool found_millis_per_move_field = false;
+			uint32_t book_depth = 0; bool found_book_depth_field = false;
 			std::ifstream inf(m_srcdir + "/conf");
 			if (!inf.is_open()) {
 				std::cerr << "failed to open '" << m_srcdir << "/conf'" << std::endl;
@@ -212,6 +220,10 @@ namespace ai01 {
 					inf >> line;
 					millis_per_move = std::stoull(line);
 					found_millis_per_move_field = true;
+				} else if (line == "book_depth") {
+					inf >> line;
+					book_depth = std::stoi(line);
+					found_book_depth_field = true;
 				}
 			}
 			inf.close();
@@ -229,6 +241,10 @@ namespace ai01 {
 			}
 			if (!found_millis_per_move_field) {
 				std::cerr << "missing field 'millis_per_move' from conf file" << std::endl;
+				return;
+			}
+			if (!found_book_depth_field) {
+				std::cerr << "missing field 'book_depth' from conf file" << std::endl;
 				return;
 			}
 			Thread_pool tp;
@@ -314,6 +330,8 @@ namespace ai01 {
 							AI <Learn_eval> (levals[j], m_book),
 							AI <Learn_eval> (levals[pairings[j]], m_book),
 							millis_per_move });
+							game_data.back().white.MAX_BOOK_DEPTH = book_depth;
+							game_data.back().black.MAX_BOOK_DEPTH = book_depth;
 						}
 					}
 					Launch_game lg;

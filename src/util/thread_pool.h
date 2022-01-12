@@ -10,7 +10,6 @@
 #include <functional>
 #include <future>
 #include <atomic>
-//#include <exception>
 
 class Thread_pool {
 	
