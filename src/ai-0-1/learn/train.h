@@ -410,6 +410,7 @@ namespace ai01 {
 						ouf << "batch_size " << batch_size << "\n";
 						ouf << "mutation_rate " << mutation_rate << "\n";
 						ouf << "millis_per_move " << millis_per_move << "\n";
+						ouf << "book_depth " << book_depth << "\n";
 						ouf << "generation " << generation << "\n";
 						ouf.close();
 					}

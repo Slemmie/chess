@@ -34,7 +34,7 @@ public:
 	}
 	
 	~Thread_pool() {
-		m_stop = true;
+		stop(true);
 	}
 	
 	inline int32_t size() const {
