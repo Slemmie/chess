@@ -12,14 +12,28 @@ namespace ai01 {
 	AI <Eval_class>::AI(const Eval_class& _eval_class, const std::string& _book_filepath) :
 	m_eval(_eval_class),
 	m_move_table(),
-	m_book(_book_filepath)
+	m_book(std::make_shared <Book_moves> (_book_filepath))
 	{ }
 	
 	template <class Eval_class>
 	AI <Eval_class>::AI(const std::string& _book_filepath) :
 	m_eval(),
 	m_move_table(),
-	m_book(_book_filepath)
+	m_book(std::make_shared <Book_moves> (_book_filepath))
+	{ }
+	
+	template <class Eval_class>
+	AI <Eval_class>::AI(const Eval_class& _eval_class, std::shared_ptr <Book_moves> _book) :
+	m_eval(_eval_class),
+	m_move_table(),
+	m_book(_book)
+	{ }
+	
+	template <class Eval_class>
+	AI <Eval_class>::AI(std::shared_ptr <Book_moves> _book) :
+	m_eval(),
+	m_move_table(),
+	m_book(_book)
 	{ }
 	
 	template <class Eval_class>
@@ -27,11 +41,11 @@ namespace ai01 {
 		uint32_t hash = Board_hash::hash(board);
 		assert(m_move_table.count(hash) < 3);
 		
-		if (board.fullmoves() < MAX_BOOK_DEPTH && m_book.count(hash)) {
+		if (board.fullmoves() < MAX_BOOK_DEPTH && m_book->count(hash)) {
 			if (log_info) {
 				std::cout << "book move found" << std::endl;
 			}
-			return m_book.find(hash);
+			return m_book->find(hash);
 		}
 		
 		m_dp_map.clear();
@@ -39,9 +53,8 @@ namespace ai01 {
 			m_q_dp_map.clear();
 		}
 		
-		m_timer = Timer();
 		m_timed_out = false;
-		m_best_move = Move();
+		m_best_move = m_sort_moves(board, board.moves_of_color(board.turn())).front();
 		m_best_eval = 0;
 		m_last_evals.clear();
 		m_last_evals_this_it.clear();
@@ -49,9 +62,11 @@ namespace ai01 {
 		Move result_move = m_best_move;
 		double result_eval = m_best_eval;
 		
+		m_timer = Timer();
+		
 		for (uint32_t depth = 1; !m_timed_out; depth++) {
 			m_last_evals_this_it.clear();
-			m_minmax(board, -1e8, 1e8, depth, 0, timeout_millis);
+			m_minmax(board, -1e9, 1e9, depth, 0, timeout_millis);
 			if (m_timed_out) {
 				break;
 			}
@@ -62,8 +77,8 @@ namespace ai01 {
 			if (log_info) {
 				std::cout << "\r" << std::string(32, ' ');
 				std::cout << "\rdepth: " << depth << " (";
-				if (fabs(result_eval) >= 1e5 - 1e3) {
-					int mate_in = 1e5 - fabs(result_eval);
+				if (fabs(result_eval) >= 1e7 - 1e3) {
+					int mate_in = 1e7 - fabs(result_eval);
 					mate_in = (mate_in + 1) >> 1;
 					std::cout << "M" << mate_in << ")";
 				} else {
@@ -71,7 +86,7 @@ namespace ai01 {
 				}
 				std::cout.flush();
 			}
-			if (fabs(result_eval) >= 1e5 - 1e3) {
+			if (fabs(result_eval) >= 1e7 - 1e3) {
 				break;
 			}
 		}
@@ -100,8 +115,8 @@ namespace ai01 {
 				m_move_table.pop(hash);
 				return 0;
 			}
-			alpha = std::max(alpha, -1e5 + from_root);
-			beta = std::min(beta, 1e5 - from_root);
+			alpha = std::max(alpha, -1e7 + from_root);
+			beta = std::min(beta, 1e7 - from_root);
 			if (alpha >= beta) {
 				m_move_table.pop(hash);
 				return alpha;
@@ -127,7 +142,7 @@ namespace ai01 {
 			if (gamestate == GAME_STATE_DRAW) {
 				return 0;
 			}
-			return -(1e5 - from_root);
+			return -(1e7 - from_root);
 		}
 		
 		for (const Move& move : moves) {

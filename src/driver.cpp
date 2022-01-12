@@ -2,6 +2,8 @@
 
 #include <ai-0-1/ai.h>
 
+#include <ai-0-1/learn/train.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -64,16 +66,36 @@ Move read_move() {
 	return Move(from, to);
 }
 
+void training() {
+	std::string srcdir;
+	int32_t id;
+	std::cout << "source dir > ";
+	std::cin >> srcdir;
+	std::cout << "id > ";
+	std::cin >> id;
+	std::cout << "is source dir '" << srcdir << "' with id " << id << " correct? (y/n) > ";
+	std::string yorn;
+	std::cin >> yorn;
+	if (yorn != "y" && yorn != "Y") {
+		training();
+		return;
+	}
+	ai01::Train(srcdir, id, std::make_shared <ai01::Book_moves> ("./src/ai-0-1/book/games_coord"));
+}
+
 int main(int argc, char** argv) {
 	
 	bool black_ai = false;
 	bool white_ai = false;
 	
-	ai01::AI ai("./src/ai-0-1/book/games_coord");
-	
 	uint64_t millis = 5000;
 	
+	bool training_flag = false;
+	
 	for (int i = 0; i < argc; i++) {
+		if (!strcmp(argv[i], "train")) {
+			training_flag = true;
+		}
 		if (!strcmp(argv[i], "w")) {
 			white_ai = true;
 		}
@@ -89,6 +111,15 @@ int main(int argc, char** argv) {
 			millis = std::stoll(s);
 		}
 	}
+	
+	if (training_flag) {
+		training();
+		return 0;
+	}
+	
+	ai01::AI ai("./src/ai-0-1/book/games_coord");
+	//ai01::AI <ai01::Learn_eval> ai(
+	//ai01::Learn_eval("./src/ai-0-1/learn/batches/0/subject_0"), "./src/ai-0-1/book/games_coord");
 	
 	Board board(DEFAULT_START_POS);
 	ai01::Move_table movetable;

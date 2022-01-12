@@ -8,6 +8,7 @@
 #include <ai-0-1/default_eval.h>
 
 #include <string>
+#include <memory>
 
 namespace ai01 {
 	
@@ -19,6 +20,8 @@ namespace ai01 {
 		
 		AI(const Eval_class& _eval_class, const std::string& _book_filepath);
 		AI(const std::string& _book_filepath);
+		AI(const Eval_class& _eval_class, std::shared_ptr <Book_moves> _book);
+		AI(std::shared_ptr <Book_moves> _book);
 		
 		Move find_move(const Board& board, uint64_t timeout_millis = 5000, bool log_info = false);
 		
@@ -30,7 +33,7 @@ namespace ai01 {
 		
 		Move_table m_move_table;
 		
-		Book_moves m_book;
+		std::shared_ptr <Book_moves> m_book;
 		
 		Dp_map m_dp_map;
 		Dp_map m_q_dp_map;

@@ -13,6 +13,13 @@ public:
 		return distribution(generator);
 	}
 	
+	static double normal() {
+		static std::random_device device;
+		static std::mt19937 generator(device());
+		static std::uniform_real_distribution <double> distribution(0.0, 1.0);
+		return distribution(generator);
+	}
+	
 	static int64_t rs32(int32_t left, int32_t right) {
 		left = std::min(left, right);
 		static std::random_device device;
