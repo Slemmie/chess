@@ -1,6 +1,6 @@
-#include <board.h>
+#include <game-0-1/board.h>
 
-#include <get_moves.h>
+#include <game-0-1/get_moves.h>
 
 #include <iostream>
 

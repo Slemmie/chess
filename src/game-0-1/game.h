@@ -3,6 +3,6 @@
 
 #pragma once
 
-#include <board.h>
-#include <board_hash.h>
-#include <get_moves.h>
+#include <game-0-1/board.h>
+#include <game-0-1/board_hash.h>
+#include <game-0-1/get_moves.h>

@@ -1,12 +1,8 @@
 
-#src_files = \
-#./src/*.cpp \
-#./src/ai-0-1/*.cpp
-
 src_files = \
 ./src/driver.cpp \
-./src/board.cpp \
-./src/get_moves.cpp
+./src/game-0-1/board.cpp \
+./src/game-0-1/get_moves.cpp
 
 all: release
 

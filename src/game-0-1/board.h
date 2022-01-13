@@ -1,8 +1,8 @@
 #pragma once
 
-#include <square_index.h>
-#include <move.h>
-#include <piece.h>
+#include <game-0-1/square_index.h>
+#include <game-0-1/move.h>
+#include <game-0-1/piece.h>
 
 #include <vector>
 #include <string>

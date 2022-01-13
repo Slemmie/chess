@@ -1,6 +1,6 @@
 #pragma once
 
-#include <game.h>
+#include <game-0-1/game.h>
 #include <util/timer.h>
 #include <ai-0-1/move_table.h>
 #include <ai-0-1/book_moves.h>

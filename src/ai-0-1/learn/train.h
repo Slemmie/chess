@@ -1,6 +1,6 @@
 #pragma once
 
-#include <game.h>
+#include <game-0-1/game.h>
 #include <ai-0-1/ai.h>
 #include <ai-0-1/learn/eval.h>
 #include <util/random.h>

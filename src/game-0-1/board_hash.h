@@ -1,6 +1,6 @@
 #pragma once
 
-#include <board.h>
+#include <game-0-1/board.h>
 
 class Board_hash {
 	

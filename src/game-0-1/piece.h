@@ -1,6 +1,6 @@
 #pragma once
 
-#include <square_index.h>
+#include <game-0-1/square_index.h>
 
 #include <vector>
 #include <string>

@@ -1,6 +1,6 @@
-#include <get_moves.h>
+#include <game-0-1/get_moves.h>
 
-#include <piece.h>
+#include <game-0-1/piece.h>
 
 uint8_t game_state(const Board& board) {
 	// get available moves and call game_state() with those moves

@@ -1,5 +1,5 @@
-#include <square_index.h>
-#include <board.h>
+#include <game-0-1/square_index.h>
+#include <game-0-1/board.h>
 
 #include <vector>
 

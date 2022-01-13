@@ -1,7 +1,7 @@
 #pragma once
 
-#include <square_index.h>
-#include <piece.h>
+#include <game-0-1/square_index.h>
+#include <game-0-1/piece.h>
 
 #include <iostream>
 
