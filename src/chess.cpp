@@ -1,0 +1,5 @@
+/// --- ENTRY POINT --- ///
+
+int main() {
+	
+}
