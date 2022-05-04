@@ -29,11 +29,11 @@ OBJ_FILES_RELEASE = ${SRC_FILES:.cpp=_release.o}
 OBJ_FILES_DEBUG = ${SRC_FILES:.cpp=_debug.o}
 
 # links
-LINKS_GUI =                          \
+LINKS_GUI =                           \
 -L ./src/gui/vendor/bin/glfw/ -lglfw3 \
--ldl                                 \
--lGL                                 \
--lpthread                            \
+-ldl                                  \
+-lGL                                  \
+-lpthread                             \
 -L ./src/gui/vendor/bin/glew/ -lGLEW
 LINKS = $(LINKS_GUI)
 
