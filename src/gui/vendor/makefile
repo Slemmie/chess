@@ -17,3 +17,18 @@ init_submodules:
 	
 	git submodule deinit -f ./glm/
 	git submodule update --init ./glm/
+
+# build and export glfw
+.PHONY: glfw
+glfw:
+	git submodule deinit -f ./glfw/
+	git submodule update --init ./glfw/
+	
+	if [ -d "./glfw/build/" ]; then rm -rf ./glfw/build/; fi;
+	mkdir ./glfw/build/ && cmake -S ./glfw/ -B ./glfw/build/
+	cd ./glfw/build/ && make glfw
+	
+	if [ ! -d "./bin/glfw/" ]; then mkdir -p ./bin/glfw/; fi;
+	
+	cp ./glfw/build/src/libglfw3.a ./bin/glfw/libglfw3.a
+	cp ./glfw/include/GLFW/glfw3.h ./bin/glfw/glfw3.h
