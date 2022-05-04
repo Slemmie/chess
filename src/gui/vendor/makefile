@@ -46,3 +46,13 @@ glew:
 	
 	cp ./glew/lib/libGLEW.a ./bin/glew/libGLEW.a
 	cp ./glew/include/GL/glew.h ./bin/glew/glew.h
+
+# export glm
+.PHONY: glm
+glm:
+	git submodule deinit -f ./glm/
+	git submodule update --init ./glm/
+	
+	if [ ! -d "./bin/glm/" ]; then mkdir -p ./bin/glm/; fi;
+	
+	cp -r ./glm/glm/* ./bin/glm/
