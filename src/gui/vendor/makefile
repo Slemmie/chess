@@ -32,3 +32,17 @@ glfw:
 	
 	cp ./glfw/build/src/libglfw3.a ./bin/glfw/libglfw3.a
 	cp ./glfw/include/GLFW/glfw3.h ./bin/glfw/glfw3.h
+
+# build and export glew
+.PHONY: glew
+glew:
+	git submodule deinit -f ./glew/
+	git submodule update --init ./glew/
+	
+	cd ./glew/auto/ && make
+	cd ./glew/ && make
+	
+	if [ ! -d "./bin/glew/" ]; then mkdir -p ./bin/glew/; fi;
+	
+	cp ./glew/lib/libGLEW.a ./bin/glew/libGLEW.a
+	cp ./glew/include/GL/glew.h ./bin/glew/glew.h
