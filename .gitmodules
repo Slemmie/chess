@@ -1,0 +1,9 @@
+[submodule "src/gui/vendor/glfw"]
+	path = src/gui/vendor/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "src/gui/vendor/glew"]
+	path = src/gui/vendor/glew
+	url = https://github.com/nigels-com/glew.git
+[submodule "src/gui/vendor/glm"]
+	path = src/gui/vendor/glm
+	url = https://github.com/g-truc/glm.git
