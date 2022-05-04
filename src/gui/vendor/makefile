@@ -6,6 +6,10 @@
 ## - stb_image
 ### everything is, if linked, statically linked
 
+# main target - builds and exports everything
+all: glfw glew glm
+	make init_submodules
+
 # target for adding any missing submodules
 .PHONY: init_submodules
 init_submodules:
