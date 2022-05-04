@@ -7,7 +7,7 @@
 ### everything is, if linked, statically linked
 
 # main target - builds and exports everything
-all: glfw glew glm
+all: glfw glew glm stb_iamge
 	make init_submodules
 
 # target for adding any missing submodules
@@ -60,3 +60,11 @@ glm:
 	if [ ! -d "./bin/glm/" ]; then mkdir -p ./bin/glm/; fi;
 	
 	cp -r ./glm/glm/* ./bin/glm/
+
+# download and export stb_image.h
+.PHONY: stb_image
+stb_image:
+	if [ ! -f "./bin/stb_image/stb_image.h" ]; then \
+		mkdir -p ./bin/stb_image/; \
+		curl https://raw.githubusercontent.com/nothings/stb/master/stb_image.h > ./bin/stb_image/stb_image.h; \
+	fi;
