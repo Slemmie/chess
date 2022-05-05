@@ -1,5 +1,7 @@
 // 64-bit bit board
 
+#pragma once
+
 #include <stdint.h>
 
 namespace game {
