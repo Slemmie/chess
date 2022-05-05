@@ -57,6 +57,11 @@ namespace game {
 			
 		} /// namespace file
 		
+		constexpr bit_board queen_side   =  file::fA | file::fB  |  file::fC | file::fD ;
+		constexpr bit_board king_side    =  file::fE | file::fF  |  file::fG | file::fH ;
+		constexpr bit_board center_files =  file::fC | file::fD  |  file::fE | file::fF ;
+		constexpr bit_board center       = (file::fD | file::fE) & (rank::r4 | rank::r5);
+		
 	} /// namespace bb
 	
 } /// namespace game
