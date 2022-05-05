@@ -17,21 +17,21 @@ namespace game {
 		
 		namespace file {
 			
-			constexpr bit_board A =
+			constexpr bit_board fA =
 			static_cast <bit_board> (0b0000000100000001000000010000000100000001000000010000000100000001);
-			constexpr bit_board B =
+			constexpr bit_board fB =
 			static_cast <bit_board> (0b0000001000000010000000100000001000000010000000100000001000000010);
-			constexpr bit_board C =
+			constexpr bit_board fC =
 			static_cast <bit_board> (0b0000010000000100000001000000010000000100000001000000010000000100);
-			constexpr bit_board D =
+			constexpr bit_board fD =
 			static_cast <bit_board> (0b0000100000001000000010000000100000001000000010000000100000001000);
-			constexpr bit_board E =
+			constexpr bit_board fE =
 			static_cast <bit_board> (0b0001000000010000000100000001000000010000000100000001000000010000);
-			constexpr bit_board F =
+			constexpr bit_board fF =
 			static_cast <bit_board> (0b0010000000100000001000000010000000100000001000000010000000100000);
-			constexpr bit_board G =
+			constexpr bit_board fG =
 			static_cast <bit_board> (0b0100000001000000010000000100000001000000010000000100000001000000);
-			constexpr bit_board H =
+			constexpr bit_board fH =
 			static_cast <bit_board> (0b1000000010000000100000001000000010000000100000001000000010000000);
 			
 		} /// namespace file
