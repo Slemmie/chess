@@ -36,6 +36,27 @@ namespace game {
 			
 		} /// namespace file
 		
+		namespace rank {
+			
+			constexpr bit_board r1 =
+			static_cast <bit_board> (0b0000000000000000000000000000000000000000000000000000000011111111);
+			constexpr bit_board r2 =
+			static_cast <bit_board> (0b0000000000000000000000000000000000000000000000001111111100000000);
+			constexpr bit_board r3 =
+			static_cast <bit_board> (0b0000000000000000000000000000000000000000111111110000000000000000);
+			constexpr bit_board r4 =
+			static_cast <bit_board> (0b0000000000000000000000000000000011111111000000000000000000000000);
+			constexpr bit_board r5 =
+			static_cast <bit_board> (0b0000000000000000000000001111111100000000000000000000000000000000);
+			constexpr bit_board r6 =
+			static_cast <bit_board> (0b0000000000000000111111110000000000000000000000000000000000000000);
+			constexpr bit_board r7 =
+			static_cast <bit_board> (0b0000000011111111000000000000000000000000000000000000000000000000);
+			constexpr bit_board r8 =
+			static_cast <bit_board> (0b1111111100000000000000000000000000000000000000000000000000000000);
+			
+		} /// namespace file
+		
 	} /// namespace bb
 	
 } /// namespace game
