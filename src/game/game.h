@@ -3,7 +3,9 @@
 
 #pragma once
 
+#include "types.h"
 #include "bit_board.h"
+#include "board.h"
 
 namespace game {
 	
